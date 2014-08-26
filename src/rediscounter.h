@@ -24,7 +24,7 @@
  * Save hashed aof file number of type int.
  * @return Formatted string of k&v
  */
-typedef char * format_kv_handler(void * key, int key_len, long value, void *hashed_key);
+typedef char * format_kv_handler(void * key, int key_len, long value, void *hashed_key, int aof_number);
 
 /***
  * rdb_state
@@ -41,7 +41,20 @@ typedef struct rdb_state{
     sds rdb_filename;
 }rdb_state;
 
-int rdb_load(char *filename, format_kv_handler handler);
+/**
+ * @brief rdb_load
+ * Main function of this file
+ * @param filename
+ * rdb file name.
+ * @param aof_number
+ * aof file numbers.
+ * @param aof_filename
+ * aof file name
+ * @param dump_aof
+ * aof file numbers.
+ * @return
+ */
+int rdb_load(char *filename, format_kv_handler handler, int aof_number, char *aof_filename, int dump_aof);
 // print state every PRINT_BLOCK keys
 #define PRINT_BLOCK 50000000
 #define RDB_INVALID_LEN 252

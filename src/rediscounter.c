@@ -216,9 +216,13 @@ void adjust_block_size(long long entry_size){
  * State of rdb file.
  * @param aof_set
  * Aof file state set.
+ * @param dump_aof
+ * is to dump kv pair in aof files.
+ * @param aof_number
+ * aof file numbers.
  * @return
  */
-int rdb_load_dict(FILE *fp, rdb_state state, Aof * aof_set, format_kv_handler format_handler) {
+int rdb_load_dict(FILE *fp, rdb_state state, Aof * aof_set, format_kv_handler format_handler, int dump_aof, int aof_number) {
     adjust_block_size(state.entry_size);
     long long total = state.size * state.entry_size,
             count = total / REDISCOUNTER_RDB_BLOCK,
@@ -300,7 +304,7 @@ int rdb_load_dict(FILE *fp, rdb_state state, Aof * aof_set, format_kv_handler fo
                 continue;
             }
             int hashed_key = 0;
-            tmp = format_handler(key, strlen(key), value, &hashed_key);
+            tmp = format_handler(key, strlen(key), value, &hashed_key, aof_number);
             // write aof files if dump_aof is 1
             if(dump_aof == 1 && add_aof(aof_set + hashed_key, tmp) == COUNTER_ERR)
                 fprintf(stderr, "add_aof error\n");
@@ -366,9 +370,16 @@ err:
  * @brief rdb_load
  * Main function of this file
  * @param filename
+ * rdb file name.
+ * @param aof_number
+ * aof file numbers.
+ * @param aof_filename
+ * aof file name
+ * @param dump_aof
+ * aof file numbers.
  * @return
  */
-int rdb_load(char *filename, format_kv_handler format_handler){
+int rdb_load(char *filename, format_kv_handler format_handler, int aof_number, char *aof_filename, int dump_aof){
     // init time recoders
     _time_begin = clock();
     show_state("parse begin...\n");
@@ -393,14 +404,14 @@ int rdb_load(char *filename, format_kv_handler format_handler){
         fprintf(stderr, "init_rdb_state failed\n");
         goto err;
     }
-    aof_set = set_aofs();
+    aof_set = set_aofs(aof_number, aof_filename);
     if(!aof_set){
         fprintf(stderr, "aof_set failed\n");
         goto err;
     }
 
     /*------ parse data section of rdb file ------*/
-    if(rdb_load_dict(fp, state, aof_set, format_handler) == COUNTER_ERR){
+    if(rdb_load_dict(fp, state, aof_set, format_handler, dump_aof, aof_number) == COUNTER_ERR){
         fprintf(stderr, "rdbLoadDict failed\n");
         goto err;
     }

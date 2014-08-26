@@ -15,14 +15,9 @@
 *
 * author: sunlei
 * 2014.08.26
-**/
+****************************/
 
 #include "aof.h"
-
-int aof_number = 1;
-char * aof_filename = "output.aof";
-int dump_aof = -1;
-
 
 int init_aof(Aof * aof_obj, int index, char *filename){
    aof_obj->index = index;
@@ -69,7 +64,7 @@ int add_aof(Aof * aof_obj, char * item){
    return AOF_OK;
 }
 
-Aof *set_aofs(){
+Aof *set_aofs(int aof_number, char *aof_filename){
    Aof * aof_set = (Aof *)malloc(sizeof(Aof) * aof_number);
    if(aof_number <= 0 || !aof_filename || !aof_set){
        fprintf(stderr, "wrong aof_number or aof_filename\n");

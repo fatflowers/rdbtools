@@ -29,7 +29,7 @@ void _parsePanic(char *msg, char *file, int line) {
  * Save hashed aof file number of type int.
  * @return Formatted string of k&v
  */
-char * _format_kv(void *key, int key_len, long value, void *hashed_key){
+char * _format_kv(void *key, int key_len, long value, void *hashed_key, int aof_number){
     if(key_len <= 0)
         return NULL;
     *(int *)hashed_key = (((char *)key)[0] - '0') % aof_number;
@@ -99,11 +99,15 @@ int main(int argc, char **argv) {
         exit(1);
     }    
     char *rdbFile = NULL;
-    // for rdb-parser
+    // option variables for rdb-parser
     BOOL dumpParseInfo = FALSE;
+    int parse_result;
     // service to use
     int service = -1;
-    int parse_result;
+    // option variables for redis-counter
+    int aof_number = 1;
+    char *aof_filename = "output.aof";
+    int dump_aof = -1;
 
     /***
      * Arguments
@@ -169,7 +173,7 @@ int main(int argc, char **argv) {
     }
     if(service == REDIS_COUNTER){
         printf("--------------------------------------------REDIS COUNTER------------------------------------------\n");
-        rdb_load(rdbFile, _format_kv);
+        rdb_load(rdbFile, _format_kv, aof_number, aof_filename, dump_aof);
         printf("--------------------------------------------REDIS COUNTER------------------------------------------\n");
     }
     return 0;
