@@ -81,17 +81,16 @@ void* userHandler (int type, void *key, void *val, unsigned int vlen, time_t exp
 
 
 int main(int argc, char **argv) {
-    char *usage = "Usage:\nrdb_tools -[p/c]\n"
-            "\n-p rdb-parser, with following options:"
-            "\n-f file [d]\n"
-            "\t-f --file \tspecify which rdb file would be parsed.\n"
-            "\t-d --dump \tparser info, to dump parser stats info.\n"
+    char *usage = "Usage:\nrdb_tools -[t service name] -[f rdb file path]"
+            "\nService name: rdbparser or rediscounter"
+            "\nrdbparser, with following options:"
+            "\n [d]\n"
+            "\t-d --dump \tparser info, to dump parser stats info.\n\t\t\tDefault: no\n"
             "\n"
-            "-c redis-counter, with following options:"
-            "\n-f file [-n number] [-a aof filename] [s]\n"
-            "\t-f --file \tspecify full path of rdb file would be parsed.\n"
+            "\nrediscounter, with following options:"
+            "\n [-n number] [-o aof filename] [s]\n"
             "\t-n --number \tspecify number of aof files.\n\t\t\tDefault: 1\n"
-            "\t-a --name \tspecify name of aof files. \n\t\t\tDefault: output.aof\n"
+            "\t-o --name \tspecify name of aof files. \n\t\t\tDefault: output.aof\n"
             "\t-s --save \tSave mode, save aof file. \n\t\t\tDefault: no\n"
             "Notice: This tool only test on redis 2.2 and 2.4, so it may be error in 2.4 later.\n";
     if(argc <= 4) {
@@ -99,25 +98,66 @@ int main(int argc, char **argv) {
         exit(1);
     }    
     char *rdbFile;
-    int i;
-    //rdb-parser
-    if(argv[1][0] == '-' && argv[1][1] == 'p'){
-        int parse_result;
-        BOOL dumpParseInfo = FALSE;
-        for(i = 2; i < argc; i++) {
-            if(argc > i+1 && argv[i][0] == '-' && argv[i][1] == 'f') {
-                i += 1;
-                rdbFile = argv[i];
-            } else if(argv[i][0] == '-' && argv[i][1] == 'd'){
-                dumpParseInfo = TRUE;
+    // for rdb-parser
+    BOOL dumpParseInfo = FALSE;
+    // service to use
+    int service = -1;
+    int parse_result;
+
+    /***
+     * Arguments
+     * -f rdb file path
+     * -d rdbparser, dump parser info.
+     * -t service name like "rdbparser", "rediscounter"
+     * -n rediscounter, aof file number for save kv
+     * -o rediscounter, aof output file name
+     * -s rediscounter, is dump aof file.
+     ***/
+    char * optstring = "f:dt:n:o:s";
+    int ch;
+    while((ch = getopt(argc, argv, optstring)) != -1){
+        switch(ch){
+        case 'f':
+            rdbFile = optarg;
+            break;
+        case 'd':
+            dumpParseInfo = TRUE;
+            break;
+        case 't':
+            if(strcmp("rdbparser", optarg) == 0){
+                service = RDB_PARSER;
             }
-        }
-        if(!rdbFile) {
-            fprintf(stderr, "ERR: U must specify rdb file by option -f filepath.\n");
+            else if(strcmp("rediscounter", optarg) == 0){
+                service = REDIS_COUNTER;
+            }
+            else{
+                fprintf(stderr, "Wrong service type: %s\n", optarg);
+                exit(1);
+            }
+            break;
+        case 'n':
+            aof_number = atoi(optarg);
+            break;
+        case 'o':
+            aof_filename = optarg;
+            break;
+        case 's':
+            dump_aof = 1;
+            break;
+        default:
+            fprintf(stderr, "Unknown option -%c\n", (char)ch);
             exit(1);
         }
-
-        /* start parse rdb file. */
+    }
+    if(service == -1){
+        fprintf(stderr, "U need to specify a service name first with -t option.\n");
+        exit(1);
+    }
+    if(service == RDB_PARSER){
+        if(!rdbFile){
+            fprintf(stderr, "U need to specify a rdb file path first with -f option.\n");
+            exit(1);
+        }
         printf("--------------------------------------------RDB PARSER------------------------------------------\n");
         parse_result = rdbParse(rdbFile, userHandler);
         printf("--------------------------------------------RDB PARSER------------------------------------------\n");
@@ -125,29 +165,14 @@ int main(int argc, char **argv) {
             dumpParserInfo();
         }
     }
-    //redis-counter
-    else if(argv[1][0] == '-' && argv[1][1] == 'c'){
-        for(i = 2; i < argc; i++) {
-                if(argc > i+1 && argv[i][0] == '-' && argv[i][1] == 'f') {
-                    i += 1;
-                    rdbFile = argv[i];
-                }else if(argv[i][0] == '-' && argv[i][1] == 'n'){
-                    i += 1;
-                    aof_number = atoi(argv[i]);
-                }
-                else if(argv[i][0] == '-' && argv[i][1] == 'a'){
-                    i += 1;
-                    aof_filename = argv[i];
-                }
-                else if(argv[i][0] == '-' && argv[i][1] == 's'){
-                    dump_aof = 1;
-                }
-            }
-            rdb_load(rdbFile, _format_kv);
-    }else{
-        fprintf(stderr, "ERR: U must specify a specific tool to use.\n");
-        exit(1);
+    if(service == REDIS_COUNTER){
+        if(!rdbFile){
+            fprintf(stderr, "U need to specify a rdb file path first with -f option.\n");
+            exit(1);
+        }
+        printf("--------------------------------------------REDIS COUNTER------------------------------------------\n");
+        rdb_load(rdbFile, _format_kv);
+        printf("--------------------------------------------REDIS COUNTER------------------------------------------\n");
     }
-
     return 0;
 }

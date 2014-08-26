@@ -18,6 +18,7 @@
 #include <limits.h>
 #include <arpa/inet.h> // for ntohl
 #include <math.h>
+#include <getopt.h>
 #include "zmalloc.h"
 #include "sds.h"
 #include "fmacros.h"
@@ -80,6 +81,9 @@
 
 #define REDIS_HEAD 0
 #define REDIS_TAIL 1
+
+#define RDB_PARSER 1
+#define REDIS_COUNTER 2
 enum BOOL_TYPE {FALSE, TRUE};
 typedef enum BOOL_TYPE BOOL;
 
