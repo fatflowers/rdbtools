@@ -21,12 +21,6 @@
 
 #include "main.h"
 
-#if 0
-#ifndef _MAIN_H
-#define _MAIN_H
-#include "main.h"
-#endif
-#endif
 // return state
 #define AOF_ERR -1
 #define AOF_OK 1
