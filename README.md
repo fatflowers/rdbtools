@@ -1,6 +1,6 @@
-**This rdbtools now support rdb-parser and redis-counter services.**
+**This rdbtools now support <a href="#rdb-parser">rdb-parser</a> and <a href="#redis-counter">redis-counter</a> services.**
 
-rdb-parser
+<a name="rdb-parser">rdb-parser</a>
 =========
 
 > Notice: 
@@ -62,7 +62,7 @@ void* keyValueHandler(int type, void *key, void *val, unsigned int vlen, time_t 
 
 any bugs? send mail, and I will appreciate your help.
 
-redis-counter
+<a name="rdb-parser">redis-counter</a>
 =============
 
 ##Introduce
