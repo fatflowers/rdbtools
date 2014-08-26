@@ -41,8 +41,6 @@ typedef struct Aof{
 
 int init_aof(Aof * aof_obj, int index, char *filename);
 
-void set_aof_global();
-
 int save_aof(Aof * aof_obj);
 
 int add_aof(Aof * aof_obj, char * item);
