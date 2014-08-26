@@ -98,7 +98,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "%s", usage);
         exit(1);
     }    
-    char *rdbFile;
+    char *rdbFile = NULL;
     // for rdb-parser
     BOOL dumpParseInfo = FALSE;
     // service to use
@@ -129,7 +129,6 @@ int main(int argc, char **argv) {
                 service = RDB_PARSER;
             }
             else if(strcmp("rediscounter", optarg) == 0){
-                //set_aof_global();
                 service = REDIS_COUNTER;
             }
             else{
