@@ -32,8 +32,6 @@ extern char * aof_filename;
 extern int dump_aof;
 
 
-void set_aof_global();
-
 typedef struct Aof{
    int index;
    char *filename;
@@ -42,6 +40,8 @@ typedef struct Aof{
 }Aof;
 
 int init_aof(Aof * aof_obj, int index, char *filename);
+
+void set_aof_global();
 
 int save_aof(Aof * aof_obj);
 
