@@ -10,7 +10,7 @@
 #ifndef REDISCOUNTER_H
 #define REDISCOUNTER_H
 #include "main.h"
-
+#include "aof.h"
 
 
 /**
@@ -41,19 +41,11 @@ typedef struct rdb_state{
     sds rdb_filename;
 }rdb_state;
 
-/**
- * Global values defined in rediscounter.c.
-*/
-extern int aof_number;
-extern char * aof_filename;
-extern long long REDISCOUNTER_RDB_BLOCK;
-extern int dump_aof;// -1 for don't save aof, 1 for save aof.
 
 int rdb_load(char *filename, format_kv_handler handler);
 // print state every PRINT_BLOCK keys
 #define PRINT_BLOCK 50000000
 #define RDB_INVALID_LEN 252
-#define AOF_BUFFER_SIZE 10240
 
 // return state
 #define COUNTER_ERR -1

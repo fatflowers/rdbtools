@@ -22,6 +22,6 @@ ziplist.o: ziplist.c zmalloc.h util.h main.h sds.h fmacros.h intset.h \
  ziplist.h zipmap.h lzf.h endian.h
 zipmap.o: zipmap.c zmalloc.h endian.h
 zmalloc.o: zmalloc.c config.h zmalloc.h
-rediscounter.o: rediscounter.c rediscounter.h sds.h zmalloc.h main.h
+rediscounter.o: rediscounter.c rediscounter.h sds.h zmalloc.h main.h aof.h
 clean:
 	-rm *.o rdb-tool

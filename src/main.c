@@ -37,7 +37,7 @@ char * _format_kv(void *key, int key_len, long value, void *hashed_key){
     return (char *)strdup(tmp);
 }
 
-
+// rdb-parser user handler.
 void* userHandler (int type, void *key, void *val, unsigned int vlen, time_t expiretime) {
 #if 0
     unsigned int i;
@@ -149,15 +149,15 @@ int main(int argc, char **argv) {
             exit(1);
         }
     }
+    if(!rdbFile){
+        fprintf(stderr, "U need to specify a rdb file path first with -f option.\n");
+        exit(1);
+    }
     if(service == -1){
         fprintf(stderr, "U need to specify a service name first with -t option.\n");
         exit(1);
     }
     if(service == RDB_PARSER){
-        if(!rdbFile){
-            fprintf(stderr, "U need to specify a rdb file path first with -f option.\n");
-            exit(1);
-        }
         printf("--------------------------------------------RDB PARSER------------------------------------------\n");
         parse_result = rdbParse(rdbFile, userHandler);
         printf("--------------------------------------------RDB PARSER------------------------------------------\n");
@@ -166,10 +166,6 @@ int main(int argc, char **argv) {
         }
     }
     if(service == REDIS_COUNTER){
-        if(!rdbFile){
-            fprintf(stderr, "U need to specify a rdb file path first with -f option.\n");
-            exit(1);
-        }
         printf("--------------------------------------------REDIS COUNTER------------------------------------------\n");
         rdb_load(rdbFile, _format_kv);
         printf("--------------------------------------------REDIS COUNTER------------------------------------------\n");
