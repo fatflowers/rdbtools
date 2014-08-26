@@ -41,7 +41,6 @@ typedef struct rdb_state{
     sds rdb_filename;
 }rdb_state;
 
-
 int rdb_load(char *filename, format_kv_handler handler);
 // print state every PRINT_BLOCK keys
 #define PRINT_BLOCK 50000000

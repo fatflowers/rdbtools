@@ -4,6 +4,7 @@
  * date: 2014-08-13
  */
 #include "main.h"
+#include "aof.h"
 #include "rdb_parser.h"
 #include "rediscounter.h"
 
@@ -128,6 +129,7 @@ int main(int argc, char **argv) {
                 service = RDB_PARSER;
             }
             else if(strcmp("rediscounter", optarg) == 0){
+                //set_aof_global();
                 service = REDIS_COUNTER;
             }
             else{
@@ -143,6 +145,7 @@ int main(int argc, char **argv) {
             break;
         case 's':
             dump_aof = 1;
+            printf("dump_aoffffff %d\n", dump_aof);
             break;
         default:
             fprintf(stderr, "Unknown option -%c\n", (char)ch);
