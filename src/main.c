@@ -133,14 +133,9 @@ void* userHandler (int type, void *key, void *val, unsigned int vlen, time_t exp
 
 int main(int argc, char **argv) {
     //rdbParse("/home/simon/rdbtools/src/r7462.rdb", userHandler, 1, "output.aof", 1, _format_kv);
-    char *usage = "Usage:\nrdb_tools -[t service name] -[f rdb file path]"
-            "\nService name: rdbparser or rediscounter"
-            "\nrdbparser, with following options:"
-            "\n [d]\n"
-            "\t-d --dump \tparser info, to dump parser stats info.\n\t\t\tDefault: no\n"
-            "\n"
-            "\nrediscounter, with following options:"
-            "\n [-n number] [-o aof filename] [s]\n"
+    char *usage = "Usage:\nrdb_tools -[t service name] -[f rdb file path] [-d] [-n number] [-o file name] [-s]"
+            "\nService name: rdbparser or rediscounter\n"
+            "\t-d --dump \t[rdbparser]parser info, to dump parser stats info.\n\t\t\tDefault: no\n"
             "\t-n --number \tspecify number of aof files.\n\t\t\tDefault: 1\n"
             "\t-o --name \tspecify name of aof files. \n\t\t\tDefault: output.aof\n"
             "\t-s --save \tSave mode, save aof file. \n\t\t\tDefault: no\n"
