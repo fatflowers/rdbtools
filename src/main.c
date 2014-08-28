@@ -19,7 +19,7 @@ void _parsePanic(char *msg, char *file, int line) {
 
 /**
  * @brief _format_kv
- * User handle in redis-counter.
+ * User handler.
  * Format a string with key and value, the string is to be dumped in aof file.
  * Define a way to get a aof file number from hashing key.
  * @param service_type
@@ -43,6 +43,7 @@ sds _format_kv(int service_type, int value_type, void * key, int key_len, void *
     sds kv_pair = sdsempty();
     // for rediscounter
     if(service_type == REDIS_COUNTER){
+        // faster without sdscatprintf.
         char tmp[1024];
         sprintf(tmp, "%s:%ld\n", (char *)key, (long)value);
         return (char *)strdup(tmp);

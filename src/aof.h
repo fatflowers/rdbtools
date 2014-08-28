@@ -40,7 +40,7 @@ typedef struct Aof{
 
 /**
  * @brief _format_kv
- * User handle in redis-counter.
+ * User handler.
  * Format a string with key and value, the string is to be dumped in aof file.
  * Define a way to get a aof file number from hashing key.
  * @param service_type
