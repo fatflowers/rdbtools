@@ -14,6 +14,7 @@
 #ifndef __RDB_PARSER_H_
 #define __RDB_PARSER_H_
 #include "main.h"
+#include "aof.h"
 
 #define STRING 0
 #define LIST 1
@@ -32,6 +33,6 @@ typedef struct {
 
 typedef void* keyValueHandler (int type, void *key, void *val,unsigned int vlen,time_t expiretime);
 void dumpParserInfo();
-int rdbParse(char *rdbFile, keyValueHandler handler);
+int rdbParse(char *rdbFile, keyValueHandler handler, int aof_number, char *aof_filename, int dump_aof, format_kv_handler format_handler);
 
 #endif

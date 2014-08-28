@@ -22,20 +22,69 @@ void _parsePanic(char *msg, char *file, int line) {
  * User handle in redis-counter.
  * Format a string with key and value, the string is to be dumped in aof file.
  * Define a way to get a aof file number from hashing key.
+ * @param service_type
+ * Service to use, eg: REDIS_COUNTER
+ * @param value_type
+ * Value type, eg: REDIS_STRING
  * @param key
  * @param key_len
  * @param value
  * @param hashed_key
  * Save hashed aof file number of type int.
+ * @param aof_number
  * @return Formatted string of k&v
  */
-char * _format_kv(void *key, int key_len, long value, void *hashed_key, int aof_number){
+sds _format_kv(int service_type, int value_type, void * key, int key_len, void * value, int value_len, void *hashed_key, int aof_number){
+    int i;
     if(key_len <= 0)
         return NULL;
     *(int *)hashed_key = (((char *)key)[0] - '0') % aof_number;
-    char tmp[1024];
-    sprintf(tmp, "%s:%ld\n", (char *)key, value);
-    return (char *)strdup(tmp);
+
+    sds kv_pair = sdsempty();
+    // for rediscounter
+    if(service_type == REDIS_COUNTER){
+        char tmp[1024];
+        sprintf(tmp, "%s:%ld\n", (char *)key, (long)value);
+        return (char *)strdup(tmp);
+    }
+    // for rdb-parser
+    else if(service_type == RDB_PARSER){
+        if(value_type == REDIS_STRING)
+            kv_pair = sdscatprintf(kv_pair, "STRING\t%s\t   %s\n", (char *)key, (char *)value);
+        else if(value_type == REDIS_SET){
+            kv_pair = sdscatprintf(kv_pair, "SET\t%s\t[", (char *)key);
+            sds *res = (sds *)value;
+            for(i = 0; i < value_len; i++){
+                kv_pair = sdscatprintf(kv_pair, "%s ", res[i]);
+            }
+            kv_pair = sdscatprintf(kv_pair, "]\n");
+        }
+        else if(value_type == REDIS_LIST){
+            kv_pair = sdscatprintf(kv_pair, "LIST\t%s\t[", (char *)key);
+            sds *res = (sds *)value;
+            for(i = 0; i < value_len; i++){
+                kv_pair = sdscatprintf(kv_pair, "%s ", res[i]);
+            }
+            kv_pair = sdscatprintf(kv_pair, "]\n");
+        }
+        else if(value_type == REDIS_ZSET) {
+            kv_pair = sdscatprintf(kv_pair, "ZSET\t%s\t", (char *)key);
+            sds *res = (sds *)value;
+            for(i = 0; i < value_len; i += 2) {
+                kv_pair = sdscatprintf(kv_pair,"(%s, %s)", res[i], res[i + 1]);
+            }
+            kv_pair = sdscatprintf(kv_pair, "\n");
+        }
+        else if(value_type == REDIS_HASH) {
+                sds *res = (sds *)value;
+                kv_pair = sdscatprintf(kv_pair,"HASH\t%s\t",(char *)key);
+                for(i = 0; i < value_len; i += 2) {
+                    kv_pair = sdscatprintf(kv_pair,"(%s, %s)", res[i], res[i + 1]);
+                }
+                kv_pair = sdscatprintf(kv_pair, "\n");
+            }
+        return kv_pair;
+    }
 }
 
 // rdb-parser user handler.
@@ -82,6 +131,7 @@ void* userHandler (int type, void *key, void *val, unsigned int vlen, time_t exp
 
 
 int main(int argc, char **argv) {
+    //rdbParse("/home/simon/rdbtools/src/r7462.rdb", userHandler, 1, "output.aof", 1, _format_kv);
     char *usage = "Usage:\nrdb_tools -[t service name] -[f rdb file path]"
             "\nService name: rdbparser or rediscounter"
             "\nrdbparser, with following options:"
@@ -108,7 +158,6 @@ int main(int argc, char **argv) {
     int aof_number = 1;
     char *aof_filename = "output.aof";
     int dump_aof = -1;
-
     /***
      * Arguments
      * -f rdb file path
@@ -148,7 +197,6 @@ int main(int argc, char **argv) {
             break;
         case 's':
             dump_aof = 1;
-            printf("dump_aoffffff %d\n", dump_aof);
             break;
         default:
             fprintf(stderr, "Unknown option -%c\n", (char)ch);
@@ -165,7 +213,7 @@ int main(int argc, char **argv) {
     }
     if(service == RDB_PARSER){
         printf("--------------------------------------------RDB PARSER------------------------------------------\n");
-        parse_result = rdbParse(rdbFile, userHandler);
+        parse_result = rdbParse(rdbFile, userHandler, aof_number, aof_filename, dump_aof, _format_kv);
         printf("--------------------------------------------RDB PARSER------------------------------------------\n");
         if(parse_result == PARSE_OK && dumpParseInfo) {
             dumpParserInfo();

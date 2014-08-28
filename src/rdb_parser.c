@@ -392,7 +392,7 @@ void parseProgress(off_t pos) {
     parser_stats.parsed_bytes = pos;
 }
 
-int rdbParse(char *rdbFile, keyValueHandler handler) {
+int     rdbParse(char *rdbFile, keyValueHandler handler, int aof_number, char *aof_filename, int dump_aof, format_kv_handler format_handler) {
     int type, loops = 0, dbid, valType;
     unsigned int rlen;
     char buf[2048];
@@ -400,7 +400,10 @@ int rdbParse(char *rdbFile, keyValueHandler handler) {
     FILE *fp;
     sds key, sval; /* sval is simple string value.*/
     sds *cval; /*complicatae value*/
+    Aof * aof_set  = NULL;/* Aof module.*/
     /* Double constants initialization */
+    sds kv_temp = NULL;
+    int kv_hashed_key;
     R_Zero = 0.0;
     R_PosInf = 1.0/R_Zero;
     R_NegInf = -1.0/R_Zero;
@@ -437,7 +440,10 @@ int rdbParse(char *rdbFile, keyValueHandler handler) {
     if(freadCheck(buf ,len, 1, fp) == 0)
         return PARSE_ERR;
     buf[len] = '\0';
-
+    aof_set = set_aofs(aof_number, aof_filename);
+    if(!aof_set){
+        fprintf(stderr, "aof_set failed\n");
+    }
     startParse(fp);
     while(1) {
         if(!(loops++ % 1000)) {
@@ -480,12 +486,21 @@ int rdbParse(char *rdbFile, keyValueHandler handler) {
         if(type == REDIS_STRING) {
             sval = rdbLoadValueObject(fp, type, &rlen);
             handler(valType, key, sval, rlen, expiretime);
+            if(dump_aof == 1)
+                kv_temp = format_handler(RDB_PARSER, valType, key, strlen(key), sval, rlen, &kv_hashed_key, aof_number);
         } else {
             cval = rdbLoadValueObject(fp, type, &rlen);
             handler(valType, key, cval, rlen, expiretime);
+            if(dump_aof == 1)
+                kv_temp = format_handler(RDB_PARSER, valType, key, strlen(key), cval, rlen, &kv_hashed_key, aof_number);
         }
+        // add current kv pair to aof buffer.
+        if(dump_aof == 1 && add_aof(aof_set + kv_hashed_key, kv_temp) == PARSE_ERR)
+            fprintf(stderr, "add_aof error\n");
 
         /* clean*/
+        if(kv_temp)
+            sdsfree(kv_temp);
         sdsfree(key);
         if(valType == REDIS_STRING) {
             sdsfree(sval);
@@ -496,6 +511,17 @@ int rdbParse(char *rdbFile, keyValueHandler handler) {
             }
             zfree(cval);
         }
+    }
+    int i;
+    // save the data in buffer
+    for(i = 0; i < aof_number; i++){
+        // write aof files if dump_aof is 1
+        if(dump_aof == 1 && save_aof(aof_set + i) == PARSE_ERR)
+            fprintf(stderr, "save_aof error\n");
+        // clean ith aof object.
+        sdsfree((aof_set + i)->buffer);
+        free((aof_set + i)->filename);
+        fclose((aof_set + i)->fp);
     }
 
     /* checksum */

@@ -33,6 +33,9 @@
 #define _XOPEN_SOURCE
 #endif
 #endif
+
+
+
 #define _FILE_OFFSET_BITS 64
 #define PARSE_ERR -1
 #define PARSE_OK 0
@@ -82,6 +85,7 @@
 #define REDIS_HEAD 0
 #define REDIS_TAIL 1
 
+/* service type */
 #define RDB_PARSER 1
 #define REDIS_COUNTER 2
 enum BOOL_TYPE {FALSE, TRUE};

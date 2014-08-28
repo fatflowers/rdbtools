@@ -13,18 +13,7 @@
 #include "aof.h"
 
 
-/**
- * @brief _format_kv
- * Format a string with key and value, the string is to be dumped in aof file.
- * Define a way to get a aof file number from hashing key.
- * @param key
- * @param key_len
- * @param value
- * @param hashed_key
- * Save hashed aof file number of type int.
- * @return Formatted string of k&v
- */
-typedef char * format_kv_handler(void * key, int key_len, long value, void *hashed_key, int aof_number);
+
 
 /***
  * rdb_state

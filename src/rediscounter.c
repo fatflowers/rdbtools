@@ -235,11 +235,11 @@ int rdb_load_dict(FILE *fp, rdb_state state, Aof * aof_set, format_kv_handler fo
             saved_key = 0;
     sds empty_key = sdsnewlen(NULL, state.key_size),
             deleted_key = sdsnewlen(NULL, state.key_size),
-            buf = sdsnewlen(NULL, REDISCOUNTER_RDB_BLOCK);
+            buf = sdsnewlen(NULL, REDISCOUNTER_RDB_BLOCK);//,
+    char *tmp = NULL;
     int i, j, value;
     char *key = (char *)malloc(sizeof(char) * state.key_size),
             value_buf[4],
-            *tmp,
             state_buf[1024];
     for(i = 0; i < state.key_size; i++){
         empty_key[i] = '\0';
@@ -304,12 +304,15 @@ int rdb_load_dict(FILE *fp, rdb_state state, Aof * aof_set, format_kv_handler fo
                 continue;
             }
             int hashed_key = 0;
-            tmp = format_handler(key, strlen(key), value, &hashed_key, aof_number);
+            if(dump_aof == 1)
+                tmp = format_handler(REDIS_COUNTER, 0, key, strlen(key), (void *)value, sizeof(value), &hashed_key, aof_number);
             // write aof files if dump_aof is 1
             if(dump_aof == 1 && add_aof(aof_set + hashed_key, tmp) == COUNTER_ERR)
                 fprintf(stderr, "add_aof error\n");
             saved_key++;
-            free(tmp);
+            //sdsfree(tmp);
+            if(tmp)
+                free(tmp);
             print_count += key_count;
         }
         // show parse

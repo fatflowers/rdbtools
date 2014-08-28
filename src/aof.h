@@ -1,6 +1,8 @@
 /****************************
 * Aof module
 *
+*
+* Functions:
 * init_aof
 * Init a aof struct.
 *
@@ -35,6 +37,25 @@ typedef struct Aof{
    FILE *fp; // aof file pointer.
    sds buffer; // buffer dumped every AOF_BUFFER_SIZE bytes.
 }Aof;
+
+/**
+ * @brief _format_kv
+ * User handle in redis-counter.
+ * Format a string with key and value, the string is to be dumped in aof file.
+ * Define a way to get a aof file number from hashing key.
+ * @param service_type
+ * Service to use, eg: REDIS_COUNTER
+ * @param value_type
+ * Value type, eg: REDIS_STRING
+ * @param key
+ * @param key_len
+ * @param value
+ * @param hashed_key
+ * Save hashed aof file number of type int.
+ * @param aof_number
+ * @return Formatted string of k&v
+ */
+typedef sds format_kv_handler(int service_type, int value_type, void * key, int key_len, void * value, int value_len, void *hashed_key, int aof_number);
 
 /**
  * @brief init_aof
